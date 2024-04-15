@@ -10,10 +10,10 @@ class Game:
 
         # Load and resize the image
         img = pygame.image.load("/Users/donjuan/Downloads/data/images/clouds/file.png")
-        self.img = pygame.transform.scale(img, (100, 100))
+        self.img = pygame.transform.scale(img, (75, 75))
 
         # Load the background images
-        bg_img = pygame.image.load("/Users/donjuan/Downloads/data/images/_7d090ca7-6057-4bb4-9f5e-412846be2ca9.jpeg")
+        bg_img = pygame.image.load("/Users/donjuan/Downloads/data/images/Screen Shot 2024-04-15 at 11.00.29 AM.png")
         bg_img = pygame.transform.scale(bg_img, (640, 480))  # Resize the image to fit the screen
         self.bg_imgs = [bg_img, bg_img]
         self.bg_pos = [[0, 0], [bg_img.get_width(), 0]]
@@ -22,6 +22,8 @@ class Game:
         self.movement = [False, False, False, False]  # Up, Down, Left, Right
 
         self.collision_areas = pygame.Rect(50, 50, 300, 50)
+        self.gravity = 1  # The strength of gravity
+        self.vertical_speed = 0  # The vertical speed of the character
 
     def run(self):
         while True:
@@ -36,6 +38,9 @@ class Game:
 
             self.img_pos[1] += (self.movement[1] - self.movement[0]) * 5
             self.img_pos[0] += (self.movement[3] - self.movement[2]) * 5  # Left and Right movement
+            self.vertical_speed += self.gravity
+            self.img_pos[1] += self.vertical_speed
+            
 
             self.screen.blit(self.img , self.img_pos)
 
