@@ -47,33 +47,46 @@ class Game:
             img_r = pygame.Rect(self.img_pos[0], self.img_pos[1], self.img.get_width(), self.img.get_height())
             
             # Check for collision
-            if img_r.colliderect(self.collision_areas):
-                print("Collision detected!")
-            
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_UP:
-                        self.movement[0] = True
-                    if event.key == pygame.K_DOWN:
-                        self.movement[1] = True
-                    if event.key == pygame.K_LEFT:  # Added left movement
-                        self.movement[2] = True
-                    if event.key == pygame.K_RIGHT:  # Added right movement
-                        self.movement[3] = True
-                if event.type == pygame.KEYUP:
-                    if event.key == pygame.K_UP:
-                        self.movement[0] = False
-                    if event.key == pygame.K_DOWN:
-                        self.movement[1] = False
-                    if event.key == pygame.K_LEFT:  # Added left movement
-                        self.movement[2] = False
-                    if event.key == pygame.K_RIGHT:  # Added right movement
-                        self.movement[3] = False
+                if img_r.colliderect(self.collision_areas):
+            print("Collision detected!")
 
-            pygame.display.update()
-            self.clock.tick(60)
+        for event in pygame.event.get():
+            self.handle_event(event)
+
+        pygame.display.update()
+        self.clock.tick(60)
+
+    def handle_event(self, event):
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+        if event.type == pygame.KEYDOWN:
+            self.handle_keydown(event)
+
+        if event.type == pygame.KEYUP:
+            self.handle_keyup(event)
+
+    def handle_keydown(self, event):
+        key_to_movement_index = {
+            pygame.K_UP: 0,
+            pygame.K_DOWN: 1,
+            pygame.K_LEFT: 2,
+            pygame.K_RIGHT: 3
+        }
+
+        if event.key in key_to_movement_index:
+            self.movement[key_to_movement_index[event.key]] = True
+
+    def handle_keyup(self, event):
+        key_to_movement_index = {
+            pygame.K_UP: 0,
+            pygame.K_DOWN: 1,
+            pygame.K_LEFT: 2,
+            pygame.K_RIGHT: 3
+        }
+
+        if event.key in key_to_movement_index:
+            self.movement[key_to_movement_index[event.key]] = False
 
 Game().run()
