@@ -12,6 +12,10 @@ class Game:
         img = pygame.image.load("/Users/donjuan/Downloads/data/images/clouds/file.png")
         self.img = pygame.transform.scale(img, (75, 75))
 
+        # Load and resize the coin image
+        coin_img = pygame.image.load("/Users/donjuan/Downloads/data/images/_55c73e18-c0b8-4460-bbb9-c0d34730aa1d-removebg-preview.png")
+        self.coin_img = pygame.transform.scale(coin_img, (50, 50))  # Resize the coin image
+
         # Load the background images
         bg_img = pygame.image.load("/Users/donjuan/Downloads/data/images/Screen Shot 2024-04-15 at 11.00.29 AM.png")
         bg_img = pygame.transform.scale(bg_img, (640, 480))  # Resize the image to fit the screen
@@ -21,11 +25,15 @@ class Game:
 
         self.img_pos = [160, 260]
         self.movement = [False, False, False, False]  # Up, Down, Left, Right
+        self.score = 0  # Initialize the score
+
 
         self.collision_areas = pygame.Rect(50, 50, 300, 50)
         self.gravity = 1  # The strength of gravity
         self.vertical_speed = 0  # The vertical speed of the character
         self.jump_strength = 15  # Increase this value for a higher jump
+        self.coins = [[640, y] for y in range(100, 401, 100)]  # Start off the screen and at different y positions
+
 
         
 
@@ -39,6 +47,21 @@ class Game:
                 if self.bg_pos[i][0] < -self.bg_imgs[i].get_width():
                     self.bg_pos[i][0] = self.bg_imgs[i].get_width()  # Reset position to the right
                 self.screen.blit(self.bg_imgs[i], self.bg_pos[i])
+
+            # Check for collision with coins        
+            for coin in self.coins:
+                if img_r.colliderect(pygame.Rect(coin[0], coin[1], self.coin_img.get_width(), self.coin_img.get_height())):
+                    print("Coin collected!")
+                    coin[0] = 640  # Reset position to the right
+                    self.score += 10  # Increase the score
+                    print("Score:", self.score)  # Print the current score
+
+            # Move and draw the coins
+            for coin in self.coins:
+                coin[0] -= 1  # Move to the left
+                if coin[0] < -self.coin_img.get_width():
+                    coin[0] = 640  # Reset position to the right
+                self.screen.blit(self.coin_img, coin)
 
             self.img_pos[1] += (self.movement[1] - self.movement[0]) * 5
             self.img_pos[0] += (self.movement[3] - self.movement[2]) * 5  # Left and Right movement
@@ -54,7 +77,13 @@ class Game:
 
             img_r = pygame.Rect(self.img_pos[0], self.img_pos[1], self.img.get_width(), self.img.get_height())
             
-            # Check for collision
+            # Check for collision with coins
+            for coin in self.coins:
+                if img_r.colliderect(pygame.Rect(coin[0], coin[1], self.coin_img.get_width(), self.coin_img.get_height())):
+                    print("Coin collected!")
+                    coin[0] = 640  # Reset position to the right
+
+            # Check for collision with collision areas
             if img_r.colliderect(self.collision_areas):
                 print("Collision detected!")
 
