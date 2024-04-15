@@ -18,12 +18,16 @@ class Game:
         self.bg_imgs = [bg_img, bg_img]
         self.bg_pos = [[0, 0], [bg_img.get_width(), 0]]
 
+
         self.img_pos = [160, 260]
         self.movement = [False, False, False, False]  # Up, Down, Left, Right
 
         self.collision_areas = pygame.Rect(50, 50, 300, 50)
         self.gravity = 1  # The strength of gravity
         self.vertical_speed = 0  # The vertical speed of the character
+        self.jump_strength = 15  # Increase this value for a higher jump
+
+        
 
     def run(self):
         while True:
@@ -40,21 +44,25 @@ class Game:
             self.img_pos[0] += (self.movement[3] - self.movement[2]) * 5  # Left and Right movement
             self.vertical_speed += self.gravity
             self.img_pos[1] += self.vertical_speed
-            
+
+            # Check if character has reached the ground
+            if self.img_pos[1] >= 400:
+                self.img_pos[1] = 400
+                self.vertical_speed = 0
 
             self.screen.blit(self.img , self.img_pos)
 
             img_r = pygame.Rect(self.img_pos[0], self.img_pos[1], self.img.get_width(), self.img.get_height())
             
             # Check for collision
-                if img_r.colliderect(self.collision_areas):
-            print("Collision detected!")
+            if img_r.colliderect(self.collision_areas):
+                print("Collision detected!")
 
-        for event in pygame.event.get():
-            self.handle_event(event)
+            for event in pygame.event.get():
+                self.handle_event(event)
 
-        pygame.display.update()
-        self.clock.tick(60)
+            pygame.display.update()
+            self.clock.tick(60)
 
     def handle_event(self, event):
         if event.type == pygame.QUIT:
@@ -69,7 +77,6 @@ class Game:
 
     def handle_keydown(self, event):
         key_to_movement_index = {
-            pygame.K_UP: 0,
             pygame.K_DOWN: 1,
             pygame.K_LEFT: 2,
             pygame.K_RIGHT: 3
@@ -78,9 +85,13 @@ class Game:
         if event.key in key_to_movement_index:
             self.movement[key_to_movement_index[event.key]] = True
 
+        # If the up arrow key is pressed and the character is on the ground, make the character jump
+        if event.key == pygame.K_UP and self.img_pos[1] >= 400:
+            self.vertical_speed = -self.jump_strength
+            self.movement[0] = True
+
     def handle_keyup(self, event):
         key_to_movement_index = {
-            pygame.K_UP: 0,
             pygame.K_DOWN: 1,
             pygame.K_LEFT: 2,
             pygame.K_RIGHT: 3
@@ -88,5 +99,9 @@ class Game:
 
         if event.key in key_to_movement_index:
             self.movement[key_to_movement_index[event.key]] = False
+
+        # If the up arrow key is released, stop the upward movement
+        if event.key == pygame.K_UP:
+            self.movement[0] = False
 
 Game().run()
