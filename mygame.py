@@ -10,7 +10,7 @@ class Game:
 
         # Load and resize the image
         img = pygame.image.load("/Users/donjuan/Downloads/data/images/clouds/file.png")
-        self.img = pygame.transform.scale(img, (75, 75))
+        self.img = pygame.transform.scale(img, (100, 100))
 
         # Load the background images
         bg_img = pygame.image.load("/Users/donjuan/Downloads/data/images/_7d090ca7-6057-4bb4-9f5e-412846be2ca9.jpeg")
