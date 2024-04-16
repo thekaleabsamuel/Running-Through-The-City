@@ -15,6 +15,9 @@ class Game:
     def __init__(self):
         pygame.init()
         pygame.display.set_caption("Running Through The City")
+        pygame.mixer.init()  # Initialize the mixer
+        pygame.mixer.music.load('/Users/donjuan/Downloads/data/Running Through The City (feat Sympal, Jkwon, 7, Reezy Keys).mp3')  # Load the music file
+        pygame.mixer.music.play(-1)  # Play the music, -1 means loop indefinitely
         self.screen = pygame.display.set_mode((640, 480))
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 36)  # Create a Font object
@@ -176,7 +179,8 @@ class Player(Base):
 
     id = Column(Integer, primary_key=True)
     _name = Column('name', String)
-    games = relationship('Game', backref='player')
+    high_score = Column(Integer, default=0)  # Add a high_score field
+    games = relationship('GameRecord', backref='player')
 
     @property
     def name(self):
@@ -187,6 +191,13 @@ class Player(Base):
         if not value:
             raise ValueError("Player name cannot be empty.")
         self._name = value
+
+    @classmethod
+    def update_high_score(cls, id, score):
+        player = session.query(cls).get(id)
+        if player and score > player.high_score:
+            player.high_score = score
+            session.commit()
 
     @classmethod
     def create(cls, name):
