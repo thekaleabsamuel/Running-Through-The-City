@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "pygame",
+			"path": "."
+		},
+		{
+			"name": "data",
+			"path": "../../../../Downloads/data"
+		}
+	],
+	"settings": {}
+}
