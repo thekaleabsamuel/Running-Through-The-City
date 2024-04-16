@@ -1,13 +1,14 @@
-from mygame import Player, Game, session
+# from mygame import Player, Game, session
 
 def main_menu():
-    print("1. Create Player")
-    print("2. Delete Player")
-    print("3. Display All Players")
-    print("4. Create Game")
-    print("5. Delete Game")
-    print("6. Display All Games")
-    print("7. Exit")
+    print("1. Start Game")
+    print("2. Create Player")
+    print("3. Delete Player")
+    print("4. Display All Players")
+    print("5. Create Game")
+    print("6. Delete Game")
+    print("7. Display All Games")
+    print("8. Exit")
     choice = input("Choose an option: ")
     return choice
 

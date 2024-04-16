@@ -6,6 +6,11 @@ from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 
 Base = declarative_base()
 
+engine = create_engine('sqlite:///mydatabase.db')
+Base.metadata.create_all(engine)
+Session = sessionmaker(bind=engine)
+session = Session()
+
 class Player(Base):
     __tablename__ = 'players'
 
@@ -45,7 +50,7 @@ class Player(Base):
     def find_by_id(cls, id):
         return session.query(cls).get(id)
 
-class Game(Base):
+class GameRecord(Base):
     __tablename__ = 'games'
 
     id = Column(Integer, primary_key=True)
@@ -74,16 +79,77 @@ class Game(Base):
     def find_by_id(cls, id):
         return session.query(cls).get(id)
 
-engine = create_engine('sqlite:///mydatabase.db')
-Base.metadata.create_all(engine)
-Session = sessionmaker(bind=engine)
-session = Session()
+def main_menu():
+    print("1. Start Game")
+    print("2. Create Player")
+    print("3. Delete Player")
+    print("4. Display All Players")
+    print("5. Create Game")
+    print("6. Delete Game")
+    print("7. Display All Games")
+    print("8. Exit")
+    choice = input("Choose an option: ")
+    return choice
+
+def create_player():
+    name = input("Enter player name: ")
+    if not name:
+        print("Player name cannot be empty.")
+        return
+    Player.create(name=name)
+
+def delete_player():
+    id = input("Enter player id: ")
+    Player.delete(id)
+
+def display_all_players():
+    players = Player.get_all()
+    for player in players:
+        print(f"ID: {player.id}, Name: {player.name}")
+
+def create_game():
+    score = input("Enter game score: ")
+    player_id = input("Enter player id: ")
+    GameRecord.create(score=score, player_id=player_id)
+
+def delete_game():
+    id = input("Enter game id: ")
+    GameRecord.delete(id)
+
+def display_all_games():
+    games = GameRecord.get_all()
+    for game in games:
+        print(f"ID: {game.id}, Score: {game.score}, Player ID: {game.player_id}")
+
+def main():
+    while True:
+        choice = main_menu()
+        if choice == "1":
+            game = Game()
+            game.run()
+        elif choice == "2":
+            create_player()
+        elif choice == "3":
+            display_all_players()
+        elif choice == "4":
+            create_game()
+        elif choice == "5":
+            delete_game()
+        elif choice == "6":
+            display_all_games()
+        elif choice == "7":
+            break
+        else:
+            print("Invalid choice. Please choose a valid option.")
+
+if __name__ == "__main__":
+    main()
 
 # Create a new player
 new_player = Player.create(name='John Doe')
 
 # Create a new game for this player
-new_game = Game.create(score=100, player_id=new_player.id)
+new_game = GameRecord.create(score=100, player_id=new_player.id)
 
 # Query all players
 players = Player.get_all()
@@ -91,7 +157,7 @@ for player in players:
     print(player.name)
 
 # Query all games of a player
-games = session.query(Game).filter(Game.player_id == new_player.id).all()
+games = session.query(GameRecord).filter(GameRecord.player_id == new_player.id).all()
 for game in games:
     print(game.score)
 
