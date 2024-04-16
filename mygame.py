@@ -58,6 +58,34 @@ class Game:
 
 
         
+class GameCharacter:
+    def __init__(self, name, image_path):
+        self.name = name
+        self.image = pygame.image.load(image_path)
+
+class CharacterSelection:
+    def __init__(self, screen):
+        self.screen = screen
+        self.characters = [
+            GameCharacter('Character1', '/Users/donjuan/Downloads/data/images/Screen_Shot_2024-04-12_at_7.29.48_PM-removebg-preview.png'),
+            GameCharacter('Character2', '/Users/donjuan/Downloads/data/Screen_Shot_2024-04-12_at_8.23.32_PM-removebg-preview.png'),
+            GameCharacter('Character3', '/Users/donjuan/Downloads/data/images/Screen_Shot_2024-04-12_at_7.19.35_PM-removebg-preview.png'),
+        ]
+        self.selected_character = None
+
+    def display(self):
+        for i, character in enumerate(self.characters, start=1):
+            print(f"{i}. {character.name}")
+            # Display the character image on the screen
+            # You would need to adjust the position and size to fit your game
+            self.screen.blit(pygame.transform.scale(character.image, (100, 100)), (i * 120, 200))
+
+        character_choice = int(input("Enter the number of your choice: "))
+        self.selected_character = self.characters[character_choice - 1]
+
+    def get_selected_character(self):
+        return self.selected_character
+
 
     def run(self):
         while True:
@@ -297,9 +325,11 @@ def main():
         choice = main_menu()
         if choice == "1":
             game = Game()
+            character_selection = CharacterSelection(game.screen)
+            character_selection.display()
+            selected_character = character_selection.get_selected_character()
+            game.character = selected_character
             game.run()
-        elif choice == "2":
-            create_player()
         # elif choice == "3":
         #     display_all_players()
         # elif choice == "4":
