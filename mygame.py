@@ -87,9 +87,13 @@ class CharacterSelection:
         return self.selected_character
 
 
+    # Video Game logic 
     def run(self):
-        while True:
-            self.screen.fill((14,219,248))
+        running = True
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
 
             # Move and draw the background images
             for i in range(2):
@@ -159,6 +163,11 @@ class CharacterSelection:
             pygame.display.update()
             self.clock.tick(60)
 
+
+        pygame.quit()
+
+
+
     def handle_event(self, event):
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -201,7 +210,7 @@ class CharacterSelection:
         if event.key == pygame.K_UP:
             self.movement[0] = False
 
-
+#Class Plaer 
 class Player(Base):
     __tablename__ = 'players'
 
@@ -249,6 +258,7 @@ class Player(Base):
     def find_by_id(cls, id):
         return session.query(cls).get(id)
 
+#Class GamerRecord
 class GameRecord(Base):
     __tablename__ = 'games'
 
@@ -278,6 +288,7 @@ class GameRecord(Base):
     def find_by_id(cls, id):
         return session.query(cls).get(id)
 
+#Main Menu
 def main_menu():
     print("1. Start Game")
     print("2. Create Player")
@@ -290,6 +301,7 @@ def main_menu():
     choice = input("Choose an option: ")
     return choice
 
+#Create Player
 def create_player():
     name = input("Enter player name: ")
     if not name:
@@ -297,6 +309,7 @@ def create_player():
         return
     Player.create(name=name)
 
+#Delete Player
 def delete_player():
     id = input("Enter player id: ")
     Player.delete(id)
