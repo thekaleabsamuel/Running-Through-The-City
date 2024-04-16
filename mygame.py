@@ -16,16 +16,16 @@ class Game:
         pygame.init()
         pygame.display.set_caption("Running Through The City")
         pygame.mixer.init()  # Initialize the mixer
-        pygame.mixer.music.load('/Users/donjuan/Downloads/data/Running Through The City (feat Sympal, Jkwon, 7, Reezy Keys).mp3')  # Load the music file
+        pygame.mixer.music.load('/Users/donjuan/Downloads/data/RUNNIN 8BIT.mp3')  # Load the music file
         pygame.mixer.music.play(-1)  # Play the music, -1 means loop indefinitely
         self.screen = pygame.display.set_mode((640, 480))
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 36)  # Create a Font object
 
 
-        # Load and resize the image
-        img = pygame.image.load("/Users/donjuan/Downloads/data/images/clouds/file.png")
-        self.img = pygame.transform.scale(img, (75, 75))
+        # Load and resize the main character
+        img = pygame.image.load("/Users/donjuan/Downloads/data/Screen_Shot_2024-04-12_at_8.23.32_PM-removebg-preview.png")
+        self.img = pygame.transform.scale(img, (100, 75))
 
         # Load and resize the coin image
         coin_img = pygame.image.load("/Users/donjuan/Downloads/data/images/_55c73e18-c0b8-4460-bbb9-c0d34730aa1d-removebg-preview.png")
@@ -39,7 +39,7 @@ class Game:
         self.enemies = [[640, 200]]  # Start off the screen and at a fixed y position
 
         # Load the background images
-        bg_img = pygame.image.load("/Users/donjuan/Downloads/data/images/Screen Shot 2024-04-15 at 11.00.29 AM.png")
+        bg_img = pygame.image.load("/Users/donjuan/Downloads/data/images/_0dc7c597-8560-44a6-a167-735d573c229e.jpeg")
         bg_img = pygame.transform.scale(bg_img, (640, 480))  # Resize the image to fit the screen
         self.bg_imgs = [bg_img, bg_img]
         self.bg_pos = [[0, 0], [bg_img.get_width(), 0]]
@@ -300,16 +300,16 @@ def main():
             game.run()
         elif choice == "2":
             create_player()
-        elif choice == "3":
-            display_all_players()
-        elif choice == "4":
-            create_game()
-        elif choice == "5":
-            delete_game()
-        elif choice == "6":
-            display_all_games()
-        elif choice == "7":
-            break
+        # elif choice == "3":
+        #     display_all_players()
+        # elif choice == "4":
+        #     create_game()
+        # elif choice == "5":
+        #     delete_game()
+        # elif choice == "6":
+        #     display_all_games()
+        # elif choice == "7":
+        #     break
         else:
             print("Invalid choice. Please choose a valid option.")
 
