@@ -24,8 +24,8 @@ class Game:
 
 
         # Load and resize the main character
-        img = pygame.image.load("/Users/donjuan/Downloads/data/Screen_Shot_2024-04-12_at_8.23.32_PM-removebg-preview.png")
-        self.img = pygame.transform.scale(img, (100, 75))
+        img = pygame.image.load("/Users/donjuan/Downloads/data/images/clouds/file.png")
+        self.img = pygame.transform.scale(img, (75, 75))
 
         # Load and resize the coin image
         coin_img = pygame.image.load("/Users/donjuan/Downloads/data/images/_55c73e18-c0b8-4460-bbb9-c0d34730aa1d-removebg-preview.png")
@@ -39,7 +39,7 @@ class Game:
         self.enemies = [[640, 200]]  # Start off the screen and at a fixed y position
 
         # Load the background images
-        bg_img = pygame.image.load("/Users/donjuan/Downloads/data/images/_0dc7c597-8560-44a6-a167-735d573c229e.jpeg")
+        bg_img = pygame.image.load("/Users/donjuan/Downloads/data/images/Screen Shot 2024-04-15 at 11.00.29 AM.png")
         bg_img = pygame.transform.scale(bg_img, (640, 480))  # Resize the image to fit the screen
         self.bg_imgs = [bg_img, bg_img]
         self.bg_pos = [[0, 0], [bg_img.get_width(), 0]]
@@ -58,42 +58,12 @@ class Game:
 
 
         
-class GameCharacter:
-    def __init__(self, name, image_path):
-        self.name = name
-        self.image = pygame.image.load(image_path)
 
-class CharacterSelection:
-    def __init__(self, screen):
-        self.screen = screen
-        self.characters = [
-            GameCharacter('Character1', '/Users/donjuan/Downloads/data/images/Screen_Shot_2024-04-12_at_7.29.48_PM-removebg-preview.png'),
-            GameCharacter('Character2', '/Users/donjuan/Downloads/data/Screen_Shot_2024-04-12_at_8.23.32_PM-removebg-preview.png'),
-            GameCharacter('Character3', '/Users/donjuan/Downloads/data/images/Screen_Shot_2024-04-12_at_7.19.35_PM-removebg-preview.png'),
-        ]
-        self.selected_character = None
+        
 
-    def display(self):
-        for i, character in enumerate(self.characters, start=1):
-            print(f"{i}. {character.name}")
-            # Display the character image on the screen
-            # You would need to adjust the position and size to fit your game
-            self.screen.blit(pygame.transform.scale(character.image, (100, 100)), (i * 120, 200))
-
-        character_choice = int(input("Enter the number of your choice: "))
-        self.selected_character = self.characters[character_choice - 1]
-
-    def get_selected_character(self):
-        return self.selected_character
-
-
-    # Video Game logic 
     def run(self):
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
+        while True:
+            self.screen.fill((14,219,248))
 
             # Move and draw the background images
             for i in range(2):
@@ -163,11 +133,6 @@ class CharacterSelection:
             pygame.display.update()
             self.clock.tick(60)
 
-
-        pygame.quit()
-
-
-
     def handle_event(self, event):
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -210,7 +175,7 @@ class CharacterSelection:
         if event.key == pygame.K_UP:
             self.movement[0] = False
 
-#Class Plaer 
+
 class Player(Base):
     __tablename__ = 'players'
 
@@ -258,7 +223,6 @@ class Player(Base):
     def find_by_id(cls, id):
         return session.query(cls).get(id)
 
-#Class GamerRecord
 class GameRecord(Base):
     __tablename__ = 'games'
 
@@ -288,7 +252,9 @@ class GameRecord(Base):
     def find_by_id(cls, id):
         return session.query(cls).get(id)
 
-#Main Menu
+
+#These CLI functions are a work in progress 
+
 def main_menu():
     print("1. Start Game")
     print("2. Create Player")
@@ -301,7 +267,6 @@ def main_menu():
     choice = input("Choose an option: ")
     return choice
 
-#Create Player
 def create_player():
     name = input("Enter player name: ")
     if not name:
@@ -309,7 +274,6 @@ def create_player():
         return
     Player.create(name=name)
 
-#Delete Player
 def delete_player():
     id = input("Enter player id: ")
     Player.delete(id)
@@ -338,11 +302,9 @@ def main():
         choice = main_menu()
         if choice == "1":
             game = Game()
-            character_selection = CharacterSelection(game.screen)
-            character_selection.display()
-            selected_character = character_selection.get_selected_character()
-            game.character = selected_character
             game.run()
+        elif choice == "2":
+            create_player()
         # elif choice == "3":
         #     display_all_players()
         # elif choice == "4":
