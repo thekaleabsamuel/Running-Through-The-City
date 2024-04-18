@@ -11,6 +11,7 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
 
+# Define the Game and Player classes
 class Game:
     def __init__(self):
         pygame.init()
@@ -21,7 +22,6 @@ class Game:
         self.screen = pygame.display.set_mode((640, 480))
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 36)  # Create a Font object
-
 
         # Load and resize the main character
         img = pygame.image.load("/Users/donjuan/Downloads/data/images/clouds/file.png")
@@ -44,23 +44,107 @@ class Game:
         self.bg_imgs = [bg_img, bg_img]
         self.bg_pos = [[0, 0], [bg_img.get_width(), 0]]
 
-
         self.img_pos = [160, 260]
+        self.prev_img_pos = self.img_pos.copy()  # Store the previous position of the player
         self.movement = [False, False, False, False]  # Up, Down, Left, Right
         self.score = 0  # Initialize the score
-
 
         self.collision_areas = pygame.Rect(50, 50, 300, 50)
         self.gravity = 1  # The strength of gravity
         self.vertical_speed = 0  # The vertical speed of the character
         self.jump_strength = 15  # Increase this value for a higher jump
         self.coins = [[640, y] for y in range(100, 401, 100)]  # Start off the screen and at different y positions
+    
+    def get_player_name(self):
+        input_box = pygame.Rect(100, 100, 140, 32)
+        color_inactive = pygame.Color('lightskyblue3')
+        color_active = pygame.Color('dodgerblue2')
+        color = color_inactive
+        active = False
+        text = ''
+        font = pygame.font.Font(None, 32)
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if input_box.collidepoint(event.pos):
+                        active = not active
+                    else:
+                        active = False
+                    color = color_active if active else color_inactive
+                if event.type == pygame.KEYDOWN:
+                    if active:
+                        if event.key == pygame.K_RETURN:
+                            return text
+                        elif event.key == pygame.K_BACKSPACE:
+                            text = text[:-1]
+                        else:
+                            text += event.unicode
+
+            self.screen.fill((30, 30, 30))
+            txt_surface = font.render(text, True, color)
+            width = max(200, txt_surface.get_width()+10)
+            input_box.w = width
+            self.screen.blit(txt_surface, (input_box.x+5, input_box.y+5))
+            pygame.draw.rect(self.screen, color, input_box, 2)
+            pygame.display.flip()
+
+                # Render the score text
+            score_text = self.font.render("Score: " + str(self.score), True, (255, 255, 255))
+            self.screen.blit(score_text, (320 - score_text.get_width() // 2, 240 - score_text.get_height() // 2 - 50))
+
+            # Render the prompt text
+            prompt_text = self.font.render("Enter your name:", True, (255, 255, 255))
+            self.screen.blit(prompt_text, (320 - prompt_text.get_width() // 2, 240 - prompt_text.get_height() // 2 - 100))
+
+            pygame.draw.rect(self.screen, color, input_box, 2)
+            pygame.display.flip()
+        
+    def end_game(self):
+        # This method gets called when the game ends
+
+        # Get the player's name
+        player_name = self.get_player_name()
+
+        # Get the player from the database, or create a new player if this name doesn't exist yet
+        player = Player.find_by_name(player_name)
+        if player is None:
+            player = Player.create(player_name)
+
+        # Create a new game record
+        game_record = GameRecord.create(self.score, player.id)
+
+        # Update the player's high score if necessary
+        if self.score > player.score:
+            Player.update_score(player.id, self.score)
+
+        # Game over screen
+        while True:
+            self.screen.fill((0, 0, 0))  # Fill the screen with black
+
+            # Render the game over text
+            game_over_text = self.font.render("Game Over", True, (255, 255, 255))
+            self.screen.blit(game_over_text, (320 - game_over_text.get_width() // 2, 240 - game_over_text.get_height() // 2))
+
+            # Render the restart text
+            restart_text = self.font.render("Press R to restart", True, (255, 255, 255))
+            self.screen.blit(restart_text, (320 - restart_text.get_width() // 2, 240 - restart_text.get_height() // 2 + 50))
+
+            pygame.display.update()  # Update the screen
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:  # If the R key is pressed
+                    self.__init__()  # Restart the game
+                    return
 
 
         
-
-        
-
+# runs game loop
     def run(self):
         while True:
             self.screen.fill((14,219,248))
@@ -72,7 +156,6 @@ class Game:
                     self.bg_pos[i][0] = self.bg_imgs[i].get_width()  # Reset position to the right
                 self.screen.blit(self.bg_imgs[i], self.bg_pos[i])
 
-
             # Move and draw the enemies
             for enemy in self.enemies:
                 enemy[0] -= 2  # Move to the left faster than the background
@@ -81,7 +164,6 @@ class Game:
                     enemy[1] = random.randint(100, 400)  # Randomize the y position
                 self.screen.blit(self.enemy_img, enemy)
 
-
             # Move and draw the coins
             for coin in self.coins:
                 coin[0] -= 1  # Move to the left
@@ -89,12 +171,15 @@ class Game:
                     coin[0] = 640  # Reset position to the right
                 self.screen.blit(self.coin_img, coin)
 
+            # Store the previous position before updating it
+            self.prev_img_pos = self.img_pos.copy()
+
             self.img_pos[1] += (self.movement[1] - self.movement[0]) * 5
             self.img_pos[0] += (self.movement[3] - self.movement[2]) * 5  # Left and Right movement
             self.vertical_speed += self.gravity
             self.img_pos[1] += self.vertical_speed
 
-             # Render the score text
+            # Render the score text
             score_text = self.font.render("Score: " + str(self.score), True, (0, 0, 0))
             self.screen.blit(score_text, (500, 10))  # Draw the score text onto the screen
 
@@ -117,11 +202,18 @@ class Game:
 
             # Check for collision with enemies
             for enemy in self.enemies:
-                if img_r.colliderect(pygame.Rect(enemy[0], enemy[1], self.enemy_img.get_width(), self.enemy_img.get_height())):
-                    print("Game over!")
-                    self.__init__()  # Restart the game
+                enemy_rect = pygame.Rect(enemy[0], enemy[1], self.enemy_img.get_width(), self.enemy_img.get_height())
+                if img_r.colliderect(enemy_rect):
+                    if self.prev_img_pos[1] + self.img.get_height() <= enemy_rect.top:  # Check if the character was above the enemy in the previous frame
+                        print("Enemy defeated!")
+                        self.enemies.remove(enemy)  # Remove the enemy from the list
+                        new_enemy = [640, random.randint(100, 400)]  # Create a new enemy
+                        self.enemies.append(new_enemy)  # Add the new enemy to the list
+                    else:
+                        print("Game over!")
+                        self.end_game()  # Call end_game when the game ends
+                        self.__init__()  # Restart the game
                     break  # Break out of the loop to avoid modifying the list while iterating
-
 
             # Check for collision with collision areas
             if img_r.colliderect(self.collision_areas):
@@ -181,7 +273,7 @@ class Player(Base):
 
     id = Column(Integer, primary_key=True)
     _name = Column('name', String)
-    high_score = Column(Integer, default=0)  # Add a high_score field
+    score = Column(Integer, default=0)  # Add a high_score field
     games = relationship('GameRecord', backref='player')
 
     @property
@@ -195,10 +287,14 @@ class Player(Base):
         self._name = value
 
     @classmethod
-    def update_high_score(cls, id, score):
+    def find_by_name(cls, name):
+        return session.query(cls).filter_by(_name=name).first()
+
+    @classmethod
+    def update_score(cls, id, score):
         player = session.query(cls).get(id)
-        if player and score > player.high_score:
-            player.high_score = score
+        if player and score > player.score:
+            player.score = score
             session.commit()
 
     @classmethod
@@ -217,7 +313,7 @@ class Player(Base):
 
     @classmethod
     def get_all(cls):
-        return session.query(cls).all()
+        return session.query(cls).order_by(cls.score.desc()).all()
 
     @classmethod
     def find_by_id(cls, id):
