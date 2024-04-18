@@ -22,6 +22,7 @@ class Game:
         self.screen = pygame.display.set_mode((640, 480))
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 36)  # Create a Font object
+       
 
         # Load and resize the main character
         img = pygame.image.load("/Users/donjuan/Downloads/data/images/clouds/file.png")
@@ -30,6 +31,19 @@ class Game:
         # Load and resize the coin image
         coin_img = pygame.image.load("/Users/donjuan/Downloads/data/images/_55c73e18-c0b8-4460-bbb9-c0d34730aa1d-removebg-preview.png")
         self.coin_img = pygame.transform.scale(coin_img, (50, 50))  # Resize the coin image
+
+        #Load and resize the brownie image
+        
+        self.brownie = [random.randint(0, 640), random.randint(200, 300)]  # Spawn a brownie at a random position
+        self.brownie_img = pygame.image.load('/Users/donjuan/Downloads/data/images/brownie powerup.png')  # Load the brownie asset
+        self.brownie_img = pygame.transform.scale(self.brownie_img, (50, 50))  # Scale it down to 50x50 pixels
+        self.double_jump_enabled = False
+        self.double_jump_start_time = None
+        self.brownie_spawned = False
+        self.double_jump_start_time = None
+        self.double_jump_start_time = pygame.time.get_ticks()
+        
+        
 
         # Load and resize the enemy image
         enemy_img = pygame.image.load("/Users/donjuan/Downloads/data/images/entities/player/run/_a062e3da-97e8-4fce-9bcd-4c22debebdac-removebg-preview (2).png")
@@ -53,6 +67,7 @@ class Game:
         self.gravity = 1  # The strength of gravity
         self.vertical_speed = 0  # The vertical speed of the character
         self.jump_strength = 15  # Increase this value for a higher jump
+        self.original_jump_strength = self.jump_strength  # Store the original jump strength
         self.coins = [[640, y] for y in range(100, 401, 100)]  # Start off the screen and at different y positions
     
     def get_player_name(self):
@@ -98,6 +113,12 @@ class Game:
             # Render the prompt text
             prompt_text = self.font.render("Enter your name:", True, (255, 255, 255))
             self.screen.blit(prompt_text, (320 - prompt_text.get_width() // 2, 240 - prompt_text.get_height() // 2 - 100))
+                        # Define the input box
+            input_box_width = 140
+            input_box_height = 32
+            input_box_x = (640 - input_box_width) // 2  # Center horizontally
+            input_box_y = (480 - input_box_height) // 2  # Center vertically
+            input_box = pygame.Rect(input_box_x, input_box_y, input_box_width, input_box_height)
 
             pygame.draw.rect(self.screen, color, input_box, 2)
             pygame.display.flip()
@@ -132,6 +153,20 @@ class Game:
             restart_text = self.font.render("Press R to restart", True, (255, 255, 255))
             self.screen.blit(restart_text, (320 - restart_text.get_width() // 2, 240 - restart_text.get_height() // 2 + 50))
 
+            # Print the data from the players table
+            players = Player.get_all()
+            for player in players:
+                print(f'Player ID: {player.id}, Name: {player.name}, Score: {player.score}')
+
+            # Print the data from the games table
+            games = GameRecord.get_all()
+            for game in games:
+                print(f'Game ID: {game.id}, Score: {game.score}, Player ID: {game.player_id}')
+
+            pygame.display.update()  # Update the screen
+
+
+
             pygame.display.update()  # Update the screen
 
             for event in pygame.event.get():
@@ -142,9 +177,7 @@ class Game:
                     self.__init__()  # Restart the game
                     return
 
-
         
-# runs game loop
     def run(self):
         while True:
             self.screen.fill((14,219,248))
@@ -170,6 +203,14 @@ class Game:
                 if coin[0] < -self.coin_img.get_width():
                     coin[0] = 640  # Reset position to the right
                 self.screen.blit(self.coin_img, coin)
+
+            # Spawn the brownie power-up every 1000 points
+            if self.score % 1000 == 0 and self.brownie is None:
+                self.brownie = [random.randint(0, 640), random.randint(0, 480)]  # Spawn a brownie at a random position
+
+            # Draw the brownie power-up if it exists
+            if self.brownie is not None:
+                self.screen.blit(self.brownie_img, self.brownie)
 
             # Store the previous position before updating it
             self.prev_img_pos = self.img_pos.copy()
@@ -199,6 +240,36 @@ class Game:
                     coin[0] = 640  # Reset position to the right
                     self.score += 10  # Increase the score
                     print("Score:", self.score)  # Print the current score
+
+            # Spawn the brownie power-up every 500 points
+            if self.score % 500 == 0 and self.brownie is None and not self.brownie_spawned:
+                self.brownie = [random.randint(0, 640), random.randint(0, 480)]  # Spawn a brownie at a random position
+                self.brownie_spawned = True
+
+            # Reset brownie_spawned when the score is no longer a multiple of 500
+            if self.score % 500 != 0:
+                self.brownie_spawned = False
+
+            # Draw the brownie power-up if it exists
+            if self.brownie is not None:
+                self.screen.blit(self.brownie_img, self.brownie)
+
+            # Check for collision with brownie power-up
+            if self.brownie is not None:
+                brownie_rect = pygame.Rect(self.brownie[0], self.brownie[1], self.brownie_img.get_width(), self.brownie_img.get_height())
+                if img_r.colliderect(brownie_rect):
+                    print("Brownie collected!")
+                    self.brownie = None  # Remove the brownie
+                    self.score += 100  # Increase the score by 100
+                    self.double_jump_enabled = True  # Enable double jump
+                    self.double_jump_start_time = pygame.time.get_ticks()  # Record the start time of the double jump
+                    self.jump_strength *= 1.3  # Increase the jump strength by 75%
+
+            # Disable double jump after 10 seconds
+            if self.double_jump_enabled:
+                if pygame.time.get_ticks() - self.double_jump_start_time > 10000:  # If 10 seconds have passed
+                    self.double_jump_enabled = False  # Disable double jump
+                    self.jump_strength = self.original_jump_strength  # Reset the jump strength
 
             # Check for collision with enemies
             for enemy in self.enemies:
@@ -273,7 +344,7 @@ class Player(Base):
 
     id = Column(Integer, primary_key=True)
     _name = Column('name', String)
-    score = Column(Integer, default=0)  # Add a high_score field
+    score = Column(Integer, default=0)
     games = relationship('GameRecord', backref='player')
 
     @property
@@ -291,13 +362,6 @@ class Player(Base):
         return session.query(cls).filter_by(_name=name).first()
 
     @classmethod
-    def update_score(cls, id, score):
-        player = session.query(cls).get(id)
-        if player and score > player.score:
-            player.score = score
-            session.commit()
-
-    @classmethod
     def create(cls, name):
         player = cls(name=name)
         session.add(player)
@@ -305,19 +369,16 @@ class Player(Base):
         return player
 
     @classmethod
-    def delete(cls, id):
-        player = session.query(cls).get(id)
-        if player:
-            session.delete(player)
+    def update_score(cls, player_id, score):
+        player = session.query(cls).filter_by(id=player_id).first()
+        if player and score > player.score:
+            player.score = score
             session.commit()
 
     @classmethod
     def get_all(cls):
         return session.query(cls).order_by(cls.score.desc()).all()
 
-    @classmethod
-    def find_by_id(cls, id):
-        return session.query(cls).get(id)
 
 class GameRecord(Base):
     __tablename__ = 'games'
@@ -333,62 +394,21 @@ class GameRecord(Base):
         session.commit()
         return game
 
-    @classmethod
-    def delete(cls, id):
-        game = session.query(cls).get(id)
-        if game:
-            session.delete(game)
-            session.commit()
 
     @classmethod
     def get_all(cls):
         return session.query(cls).all()
-
-    @classmethod
-    def find_by_id(cls, id):
-        return session.query(cls).get(id)
 
 
 #These CLI functions are a work in progress 
 
 def main_menu():
     print("1. Start Game")
-    print("2. Create Player")
-    print("3. Delete Player")
-    print("4. Display All Players")
-    print("5. Create Game")
-    print("6. Delete Game")
-    print("7. Display All Games")
-    print("8. Exit")
+
     choice = input("Choose an option: ")
     return choice
 
-def create_player():
-    name = input("Enter player name: ")
-    if not name:
-        print("Player name cannot be empty.")
-        return
-    Player.create(name=name)
 
-def delete_player():
-    id = input("Enter player id: ")
-    Player.delete(id)
-
-def display_all_players():
-    players = Player.get_all()
-    for player in players:
-        print(f"ID: {player.id}, Name: {player.name}")
-
-def create_game():
-    score = input("Enter game score: ")
-    player_id = input("Enter player id: ")
-    GameRecord.create(score=score, player_id=player_id)
-
-def delete_game():
-    id = input("Enter game id: ")
-    GameRecord.delete(id)
-
-def display_all_games():
     games = GameRecord.get_all()
     for game in games:
         print(f"ID: {game.id}, Score: {game.score}, Player ID: {game.player_id}")
